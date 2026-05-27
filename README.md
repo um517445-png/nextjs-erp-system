@@ -16,7 +16,7 @@ This is a comprehensive ERP (Enterprise Resource Planning) System built with **N
   [LinkedIn](https://www.linkedin.com/in/carlosvergaragamez/) | [GitHub](https://github.com/PoeMadara)
 
 - **Lavinia Cristiana Bacaru**  
-  [LinkedIn](https://www.linkedin.com/in/lavinia-bacaru-devsecops/) | [GitHub](https://github.com/codewithlavi)
+  [LinkedIn](https://www.linkedin.com/in/lavinia-bacaru-devsecops/) | [GitHub](https://github.com/codinglavinia)
 
 ## Project Overview
 
