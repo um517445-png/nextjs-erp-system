@@ -19,10 +19,7 @@ const nextConfig: NextConfig = {
     ],
   },
 
-  /* Configuraction for GitHub Pages */
-  output: 'export',
   reactStrictMode: true,
-  assetPrefix: './',
 };
 
 export default nextConfig;
