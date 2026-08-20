@@ -1,7 +1,7 @@
 import EmpleadoClientPage from './EmpleadoClientPage';
 
 export const metadata = {
-  title: 'Empleados - ERP System',
+  title: 'الموظفين والرواتب - Forder ERP',
 };
 
 export default function EmpleadosPage() {
