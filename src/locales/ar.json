@@ -1,9 +1,12 @@
 {
-  "pagination": {
-    "showing": "عرض {start} إلى {end} من أصل {total} نتائج",
-    "previous": "السابق",
-    "next": "التالي",
-    "pageOf": "صفحة {currentPage} من {totalPages}"
+  "dashboardPage": {
+    "salesOverviewTitle": "نظرة عامة على المبيعات والإيرادات",
+    "salesOverviewDescription": "تحليل الأداء الشهري للمبيعات بالموازاة مع الأهداف الفتريّة",
+    "purchasesOverviewTitle": "نظرة عامة على المشتريات والتكاليف",
+    "purchasesOverviewDescription": "متابعة النفقات وتكاليف البضائع المباعة وسلسلة التوريد",
+    "teamActivityTitle": "سجل أحدث أنشطة وعمليات فريق العمل",
+    "teamActivityDescription": "متابعة فورية لكل تحرك وتعديل أجرائي داخل المنظومة",
+    "noTeamActivity": "لا توجد أنشطة مسجلة حديثاً خلال الجلسة"
   },
   "common": {
     "email": "البريد الإلكتروني",
