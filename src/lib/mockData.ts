@@ -3,53 +3,51 @@ import type { Cliente, Proveedor, Empleado, Producto, Almacen, Factura, DetalleF
 import { subDays, subHours, subMinutes } from 'date-fns';
 
 let clientes: Cliente[] = [
-  { id: 'CLI001', nombre: 'Juan Pérez', nif: '12345678A', direccion: 'Calle Falsa 123', poblacion: 'Ciudad Real', telefono: '926111222', email: 'juan.perez@example.com' },
-  { id: 'CLI002', nombre: 'Ana López', nif: '87654321B', direccion: 'Avenida Principal 45', poblacion: 'Miguelturra', telefono: '926333444', email: 'ana.lopez@example.com' },
+  { id: 'CLI001', nombre: 'شركة الأمل للمقاولات والتطوير', nif: '304928102', direccion: 'شارع التسعين الشمالي، التجمع الخامس', poblacion: 'القاهرة الجديدة', telefono: '01012345678', email: 'info@alamal-dev.com' },
+  { id: 'CLI002', nombre: 'مؤسسة الفرسان للتجارة والتوريدات', nif: '592019483', direccion: 'برج الفرسان، طريق الكورنيش', poblacion: 'الإسكندرية', telefono: '01298765432', email: 'contact@alforsan.eg' },
+  { id: 'CLI003', nombre: 'المهندس أحمد مصطفى', nif: '109283746', direccion: 'حي الأشجار، الشيخ زايد', poblacion: 'الجيزة', telefono: '01155443322', email: 'ahmed.mostafa@gmail.com' },
 ];
 
 let proveedores: Proveedor[] = [
-  { id: 'PRO001', nombre: 'Suministros Informáticos SL', nif: 'B12345678', direccion: 'Polígono Industrial La Estrella, Nave 10', poblacion: 'Argamasilla', telefono: '926555666', email: 'pedidos@suministrosinfo.com', personaContacto: 'Carlos Duty', terminosPago: '30 días' },
-  { id: 'PRO002', nombre: 'Material Oficina Global', nif: 'A87654321', direccion: 'Calle Comercio 7', poblacion: 'Valdepeñas', telefono: '926777888', email: 'ventas@materialoficina.com', personaContacto: 'Lucía Admin', terminosPago: 'Al contado' },
+  { id: 'PRO001', nombre: 'السويدي للكابلات والأنظمة الكهربائية', nif: '983726154', direccion: 'المنطقة الصناعية الأولى، مدينة 6 أكتوبر', poblacion: 'الجيزة', telefono: '0238383838', email: 'sales@elsewedy.com', personaContacto: 'م. تامر حسني', terminosPago: '30 يوماً' },
+  { id: 'PRO002', nombre: 'مجموعة حديد عز للصلب والهياكل', nif: '472918374', direccion: 'طريق الإسكندرية الصحراوي', poblacion: 'الإسكندرية', telefono: '0237666555', email: 'orders@ezzsteel.com', personaContacto: 'أ. خالد راشد', terminosPago: 'عند التسليم' },
 ];
 
-let empleados: Empleado[] = [];
+let empleados: Empleado[] = [
+  { id: 'EMP001', nombre: 'المهندس محمد أحمد', email: 'mohamed.ahmed@vorder.com', telefono: '01000000001', role: 'admin', isBlocked: false, avatarColor: '#3498db', emailNotifications: true },
+  { id: 'EMP002', nombre: 'أ.د. أحمد محمود السايس', email: 'ahmed.mahmoud@vorder.com', telefono: '01011223344', role: 'admin', isBlocked: false, avatarColor: '#e74c3c', emailNotifications: true },
+  { id: 'EMP003', nombre: 'م. ياسر فاروق عبد السميع', email: 'yasser.farouk@vorder.com', telefono: '01222334455', role: 'moderator', isBlocked: false, avatarColor: '#2ecc71', emailNotifications: true },
+  { id: 'EMP004', nombre: 'أ. سارة حسن الشريف', email: 'sara.hassan@vorder.com', telefono: '01133445566', role: 'user', isBlocked: false, avatarColor: '#f1c40f', emailNotifications: true },
+  { id: 'EMP005', nombre: 'م. كريم الدين الشاذلي', email: 'kareem.elshazly@vorder.com', telefono: '01555667788', role: 'user', isBlocked: false, avatarColor: '#9b59b6', emailNotifications: false },
+];
 
 let almacenes: Almacen[] = [
-  { id: 'ALM001', nombre: 'Almacén Central', ubicacion: 'Calle Logística 1, Polígono Central', capacidad: '1000 m2', personaContacto: 'Jefe Almacén', telefonoContacto: '926000000', notas: 'Recepción principal de mercancías.' },
-  { id: 'ALM002', nombre: 'Almacén Tienda', ubicacion: 'Trastienda, Calle Comercial 5', capacidad: '200 unidades', notas: 'Stock para tienda física.' },
+  { id: 'ALM001', nombre: 'المستودع الرئيسي - العابور', ubicacion: 'المنطقة الصناعية ب، العابور', capacidad: '2500 م²', personaContacto: 'م. هاني سعيد', telefonoContacto: '01099887766', notas: 'استلام التوريدات الرئيسية والمعدات.' },
+  { id: 'ALM002', nombre: 'مخزن العاصمة الإدارية', ubicacion: 'الحي الحكومي، العاصمة الإدارية', capacidad: '800 م²', personaContacto: 'أ. سامح عبد الفتاح', telefonoContacto: '01233445566', notas: 'المخزون السريع لمشروعات العاصمة.' },
 ];
 
 let productos: Producto[] = [
-  { id: 'PROD001', codigo: 'P001', nombre: 'Portátil Modelo X', descripcion: 'Portátil 15 pulgadas, 16GB RAM, 512GB SSD', precioCompra: 600.00, precioVenta: 899.99, moneda: 'EUR', iva: 21.00, stock: 50, categoria: 'Electrónica', referencia: 'LX15-512'},
-  { id: 'PROD002', codigo: 'P002', nombre: 'Monitor 24 pulgadas', descripcion: 'Monitor LED Full HD', precioCompra: 120.00, precioVenta: 179.50, moneda: 'EUR', iva: 21.00, stock: 120, categoria: 'Periféricos', referencia: 'MON24-FHD' },
-  { id: 'PROD003', codigo: 'P003', nombre: 'Teclado Mecánico RGB', descripcion: 'Teclado mecánico con retroiluminación RGB', precioCompra: 45.00, precioVenta: 79.90, moneda: 'USD', iva: 21.00, stock: 75, categoria: 'Periféricos', referencia: 'TEC-MEC-RGB' },
-  { id: 'PROD004', codigo: 'P004', nombre: 'Ratón Inalámbrico Ergo', descripcion: 'Ratón ergonómico inalámbrico', precioCompra: 20.00, precioVenta: 35.00, moneda: 'GBP', iva: 21.00, stock: 200, categoria: 'Periféricos', referencia: 'RAT-ERG-WL' },
+  { id: 'PROD001', codigo: 'P-CAB-01', nombre: 'كابلات نحاسية مسلح 4*16 مم', descripcion: 'كابلات كهربائية معزولة ومسلحة للمشروعات الكبرى', precioCompra: 450.00, precioVenta: 680.00, moneda: 'EGP', iva: 14.00, stock: 1500, categoria: 'كهرباء', referencia: 'EL-SEW-416'},
+  { id: 'PROD002', codigo: 'P-STL-02', nombre: 'حديد تسليح عالي الإجهاد 12 مم', descripcion: 'حديد تسليح مشرشر مطابق للمواصفات القياسية', precioCompra: 38000.00, precioVenta: 42500.00, moneda: 'EGP', iva: 14.00, stock: 250, categoria: 'إنشاءات', referencia: 'EZ-STL-12M' },
+  { id: 'PROD003', codigo: 'P-GEN-03', nombre: 'مولد كهربائي ديزل 100 ك.ف.أ', descripcion: 'مولد كاتم للصوت مناسب للمواقع الميدانية', precioCompra: 320000.00, precioVenta: 395000.00, moneda: 'EGP', iva: 14.00, stock: 12, categoria: 'معدات', referencia: 'CAT-GEN-100K' },
 ];
 
 let facturas: Factura[] = [
   {
-    id: 'FV2024-00001', fecha: '2024-05-10', tipo: 'Venta', clienteId: 'CLI001', empleadoId: 'EMP001', almacenId: 'ALM001',
-    baseImponible: 179.50, totalIva: 37.69, totalFactura: 217.19, estado: 'Pagada', moneda: 'EUR',
+    id: 'INV-2026-001', fecha: '2026-08-01', tipo: 'Venta', clienteId: 'CLI001', empleadoId: 'EMP001', almacenId: 'ALM001',
+    baseImponible: 68000.00, totalIva: 9520.00, totalFactura: 77520.00, estado: 'Pagada', moneda: 'EGP',
     detalles: [
-      { id: 'DET001', productoId: 'PROD002', productoNombre: 'Monitor 24 pulgadas', cantidad: 1, precioUnitario: 179.50, porcentajeIva: 21.00, subtotal: 179.50, subtotalConIva: 217.195 }
+      { id: 'DET001', productoId: 'PROD001', productoNombre: 'كابلات نحاسية مسلح 4*16 مم', cantidad: 100, precioUnitario: 680.00, porcentajeIva: 14.00, subtotal: 68000.00, subtotalConIva: 77520.00 }
     ],
-    clienteNombre: 'Juan Pérez', empleadoNombre: 'Admin ERP'
+    clienteNombre: 'شركة الأمل للمقاولات والتطوير', empleadoNombre: 'المهندس محمد أحمد'
   },
   {
-    id: 'FC2024-00001', fecha: '2024-06-15', tipo: 'Compra', proveedorId: 'PRO001', empleadoId: 'EMP002', almacenId: 'ALM001',
-    baseImponible: 600.00, totalIva: 126.00, totalFactura: 726.00, estado: 'Pendiente', moneda: 'USD',
+    id: 'INV-2026-002', fecha: '2026-08-15', tipo: 'Compra', proveedorId: 'PRO001', empleadoId: 'EMP002', almacenId: 'ALM001',
+    baseImponible: 225000.00, totalIva: 31500.00, totalFactura: 256500.00, estado: 'Pendiente', moneda: 'EGP',
     detalles: [
-      { id: 'DET002', productoId: 'PROD001', productoNombre: 'Portátil Modelo X', cantidad: 1, precioUnitario: 600.00, porcentajeIva: 21.00, subtotal: 600.00, subtotalConIva: 726.00 }
+      { id: 'DET002', productoId: 'PROD001', productoNombre: 'كابلات نحاسية مسلح 4*16 مم', cantidad: 500, precioUnitario: 450.00, porcentajeIva: 14.00, subtotal: 225000.00, subtotalConIva: 256500.00 }
     ],
-    proveedorNombre: 'Suministros Informáticos SL', empleadoNombre: 'Laura García'
-  },
-   {
-    id: 'FV2024-00002', fecha: '2024-07-01', tipo: 'Venta', clienteId: 'CLI002', empleadoId: 'EMP001', almacenId: 'ALM002',
-    baseImponible: 79.90, totalIva: 16.78, totalFactura: 96.68, estado: 'Pendiente', moneda: 'GBP',
-    detalles: [
-      { id: 'DET003', productoId: 'PROD003', productoNombre: 'Teclado Mecánico RGB', cantidad: 1, precioUnitario: 79.90, porcentajeIva: 21.00, subtotal: 79.90, subtotalConIva: 96.679 }
-    ],
-    clienteNombre: 'Ana López', empleadoNombre: 'Admin ERP'
+    proveedorNombre: 'السويدي للكابلات والأنظمة الكهربائية', empleadoNombre: 'أ.د. أحمد محمود السايس'
   },
 ];
 
