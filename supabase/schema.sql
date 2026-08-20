@@ -113,3 +113,37 @@ CREATE POLICY "Allow public insert/update on warehouses" ON public.warehouses FO
 
 CREATE POLICY "Allow public read access on invoices" ON public.invoices FOR SELECT USING (true);
 CREATE POLICY "Allow public insert/update on invoices" ON public.invoices FOR ALL USING (true);
+
+-- =========================================================
+-- ERP ANALYTICS SQL AGGREGATE VIEWS
+-- =========================================================
+
+-- 1. View لحساب إجمالي الفواتير والمبيعات حسب الحالة
+CREATE OR REPLACE VIEW public.v_facturas_summary AS
+SELECT 
+    tipo,
+    estado,
+    COUNT(*) AS total_count,
+    SUM(total_factura) AS total_amount
+FROM public.invoices
+GROUP BY tipo, estado;
+
+-- 2. View لحساب قيمة المخزون والمنتجات الحرجة
+CREATE OR REPLACE VIEW public.v_inventory_summary AS
+SELECT 
+    COUNT(*) AS total_products,
+    SUM(stock) AS total_items,
+    SUM(stock * precio_compra) AS total_cost_value,
+    SUM(stock * precio_venta) AS total_retail_value,
+    COUNT(CASE WHEN stock <= 5 THEN 1 END) AS low_stock_count
+FROM public.products;
+
+-- 3. View لحساب ملخص الموظفين ومسير الرواتب
+CREATE OR REPLACE VIEW public.v_employees_summary AS
+SELECT 
+    COUNT(*) AS total_employees,
+    COUNT(CASE WHEN is_blocked = false THEN 1 END) AS active_employees,
+    COUNT(CASE WHEN role = 'admin' THEN 1 END) AS admin_count,
+    COUNT(CASE WHEN role = 'moderator' THEN 1 END) AS moderator_count,
+    COUNT(CASE WHEN role = 'user' THEN 1 END) AS user_count
+FROM public.employees;
