@@ -10,13 +10,9 @@ export default function HomePage() {
 
   useEffect(() => {
     if (!isLoading) {
-      if (isAuthenticated) {
-        router.replace('/dashboard');
-      } else {
-        router.replace('/login');
-      }
+      router.replace('/dashboard');
     }
-  }, [isAuthenticated, isLoading, router]);
+  }, [isLoading, router]);
 
   if (isLoading) {
     return (
