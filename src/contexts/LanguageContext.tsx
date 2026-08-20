@@ -1,10 +1,10 @@
 'use client';
 import type { ReactNode } from 'react';
 import { createContext, useState, useEffect, useCallback } from 'react';
+import arTranslations from '@/locales/ar.json';
 import enTranslations from '@/locales/en.json';
-import esTranslations from '@/locales/es.json';
 
-export type Locale = 'en' | 'es';
+export type Locale = 'ar' | 'en';
 
 interface LanguageContextType {
   language: Locale;
@@ -13,44 +13,58 @@ interface LanguageContextType {
 }
 
 const translations: Record<Locale, any> = {
+  ar: arTranslations,
   en: enTranslations,
-  es: esTranslations,
 };
 
 export const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [language, setLanguageState] = useState<Locale>('es'); // Default to Spanish
+  const [language, setLanguageState] = useState<Locale>('ar'); // Default to Arabic unconditionally
 
   useEffect(() => {
-    const storedLang = localStorage.getItem('erpLanguage') as Locale | null;
-    if (storedLang && (storedLang === 'en' || storedLang === 'es')) {
-      setLanguageState(storedLang);
-      document.documentElement.lang = storedLang;
-    } else {
-      document.documentElement.lang = language;
+    try {
+      const storedLang = localStorage.getItem('erpLanguage');
+      if (storedLang === 'en') {
+        setLanguageState('en');
+        document.documentElement.lang = 'en';
+        document.documentElement.dir = 'ltr';
+      } else {
+        // Auto-purge any stale 'es' or unknown language key, forcing Arabic
+        localStorage.setItem('erpLanguage', 'ar');
+        setLanguageState('ar');
+        document.documentElement.lang = 'ar';
+        document.documentElement.dir = 'rtl';
+      }
+    } catch {
+      document.documentElement.lang = 'ar';
+      document.documentElement.dir = 'rtl';
     }
-  }, [language]);
+  }, []);
 
   const setLanguage = useCallback((lang: Locale) => {
-    localStorage.setItem('erpLanguage', lang);
-    setLanguageState(lang);
-    document.documentElement.lang = lang;
+    const validLang = lang === 'en' ? 'en' : 'ar';
+    try {
+      localStorage.setItem('erpLanguage', validLang);
+    } catch {}
+    setLanguageState(validLang);
+    document.documentElement.lang = validLang;
+    document.documentElement.dir = validLang === 'ar' ? 'rtl' : 'ltr';
   }, []);
 
   const t = useCallback((key: string, params?: Record<string, string | number>): string => {
     const keys = key.split('.');
-    let result = translations[language];
+    let result = translations[language] || translations['ar'];
     for (const k of keys) {
       result = result?.[k];
       if (result === undefined) {
-        // Fallback to English if translation not found in current language
-        let fallbackResult = translations['en'];
+        // Fallback to Arabic if translation not found in current language
+        let fallbackResult = translations['ar'];
         for (const fk of keys) {
-            fallbackResult = fallbackResult?.[fk];
-            if (fallbackResult === undefined) {
-                return key; // Return key if not found in English either
-            }
+          fallbackResult = fallbackResult?.[fk];
+          if (fallbackResult === undefined) {
+            return key;
+          }
         }
         result = fallbackResult;
         break;
