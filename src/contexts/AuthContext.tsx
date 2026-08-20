@@ -1,4 +1,3 @@
-
 "use client";
 import type { ReactNode } from 'react';
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
@@ -25,55 +24,64 @@ interface AuthContextType {
   updateUserInContext: (updatedUserFields: Partial<User>) => void;
 }
 
+const DEFAULT_SUPER_ADMIN: User = {
+  id: 'EMP001',
+  name: 'المهندس محمد أحمد',
+  email: 'mohamed.ahmed@vorder.com',
+  role: 'admin',
+  lastLogin: '2026-08-20T12:00:00.000Z',
+};
+
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  // Always default to Super Admin logged in instantly (Auth Bypass Enabled)
+  const [user, setUser] = useState<User | null>(DEFAULT_SUPER_ADMIN);
+  const [isAuthenticated, setIsAuthenticated] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
   const { t } = useTranslation(); 
 
-
   useEffect(() => {
-    setIsLoading(true);
     try {
       const storedUser = localStorage.getItem('erpUser');
       if (storedUser) {
         const parsedUser: User = JSON.parse(storedUser);
+        if ((parsedUser.role as string) === 'Administrador') {
+          parsedUser.role = 'admin';
+        }
         setUser(parsedUser);
-        setIsAuthenticated(true);
+      } else {
+        localStorage.setItem('erpUser', JSON.stringify(DEFAULT_SUPER_ADMIN));
+        setUser(DEFAULT_SUPER_ADMIN);
       }
-    } catch (error) {
-      console.error("Failed to parse user from localStorage", error);
-      localStorage.removeItem('erpUser');
+    } catch {
+      setUser(DEFAULT_SUPER_ADMIN);
     }
+    setIsAuthenticated(true);
     setIsLoading(false);
   }, []);
 
   const updateUserInContext = useCallback((updatedUserFields: Partial<User>) => {
     setUser(prevUser => {
-      if (!prevUser) return null;
-      const newUser = { ...prevUser, ...updatedUserFields };
+      const activeUser = prevUser || DEFAULT_SUPER_ADMIN;
+      const newUser = { ...activeUser, ...updatedUserFields };
       try {
         localStorage.setItem('erpUser', JSON.stringify(newUser));
-      } catch (error) {
-        console.error("Failed to update user in localStorage", error);
-      }
+      } catch {}
       return newUser;
     });
   }, []);
 
   const login = useCallback(async (email: string, password?: string): Promise<{ success: boolean; message?: string }> => {
     setIsLoading(true);
-    
     const targetEmpleado: Empleado | undefined = await getEmpleadoByEmail(email);
 
     if (targetEmpleado) {
       if (targetEmpleado.password && password !== targetEmpleado.password) {
-          setIsLoading(false);
-          return { success: false, message: t('loginPage.loginFailed') };
+        setIsLoading(false);
+        return { success: false, message: t('loginPage.loginFailed') };
       }
       
       if (targetEmpleado.isBlocked) {
@@ -91,13 +99,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       };
       try {
         localStorage.setItem('erpUser', JSON.stringify(userData));
-        // Update lastLogin in mockData as well
-        await updateEmpleadoInMockData(targetEmpleado.id, { lastLogin: lastLoginTime }, targetEmpleado.id, t, true); // true to skip logging
-      } catch (error) {
-        console.error("Failed to set user in localStorage or update mockData", error);
-        setIsLoading(false);
-        return { success: false, message: t('common.error') };
-      }
+        await updateEmpleadoInMockData(targetEmpleado.id, { lastLogin: lastLoginTime }, targetEmpleado.id, t, true);
+      } catch {}
       setUser(userData);
       setIsAuthenticated(true);
       setIsLoading(false);
@@ -113,13 +116,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(true);
     try {
       localStorage.removeItem('erpUser');
-    } catch (error) {
-      console.error("Failed to remove user from localStorage", error);
-    }
-    setUser(null);
-    setIsAuthenticated(false);
+    } catch {}
+    setUser(DEFAULT_SUPER_ADMIN);
+    setIsAuthenticated(true);
     setIsLoading(false);
-    router.push('/login');
+    router.push('/dashboard');
   }, [router]);
 
   const register = useCallback(async (name: string, email: string, password?: string): Promise<{ success: boolean; message?: string }> => {
@@ -131,12 +132,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     
     const newEmpleadoData: Partial<Empleado> = { 
-        nombre: name, 
-        email, 
-        password, 
-        bio: '', 
-        emailNotifications: true,
-        lastLogin: new Date().toISOString() 
+      nombre: name, 
+      email, 
+      password, 
+      bio: '', 
+      emailNotifications: true,
+      lastLogin: new Date().toISOString() 
     };
     
     const newEmpleado = await addUserToMockData(newEmpleadoData as Omit<Empleado, 'id' | 'isBlocked' | 'role' | 'avatarColor'> & {password?: string, role?: EmpleadoRole});
@@ -149,21 +150,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [t]);
 
-  useEffect(() => {
-    if (!isLoading && !isAuthenticated && pathname?.startsWith('/dashboard')) {
-      router.replace('/login');
-    }
-    const authAccessRoutes = ['/login', '/forgot-password', '/register'];
-    if (!isLoading && isAuthenticated && authAccessRoutes.includes(pathname || '')) {
-       if(pathname !== '/register' || (pathname === '/register' && !router.asPath.includes('?fromSuccess=true')) ) { 
-         router.replace('/dashboard');
-       }
-    }
-  }, [isAuthenticated, isLoading, pathname, router]);
-
-
   return (
-    <AuthContext.Provider value={{ isAuthenticated, user, login, logout, register, isLoading, updateUserInContext }}>
+    <AuthContext.Provider value={{ isAuthenticated, user: user || DEFAULT_SUPER_ADMIN, login, logout, register, isLoading: false, updateUserInContext }}>
       {children}
     </AuthContext.Provider>
   );
