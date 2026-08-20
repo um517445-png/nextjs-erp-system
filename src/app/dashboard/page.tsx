@@ -5,8 +5,8 @@ import Link from 'next/link';
 import { MetricCard } from "@/components/dashboard/MetricCard";
 import { SalesChart } from "@/components/dashboard/SalesChart";
 import { PurchasesChart } from "@/components/dashboard/PurchasesChart";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
-import { DollarSign, Package, ShoppingCart, Users, ListChecks, Banknote } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { DollarSign, Package, ShoppingCart, Users, ListChecks, Banknote, Plus, Sparkles, MessageSquare, Briefcase } from "lucide-react";
 import { TeamActivityCard } from '@/components/dashboard/TeamActivityCard';
 import {
   Table,
@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { useTranslation } from '@/hooks/useTranslation';
+import { Button } from "@/components/ui/button";
 import { getRecentSales, getRecentOrders, getWarehouseStatus, getTotalStockValue, getClientes, getFacturas } from '@/lib/mockData';
 import type { RecentSale, RecentOrder, WarehouseSummary, CurrencyCode, Factura } from '@/types';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -35,30 +35,18 @@ interface DashboardData {
   allFacturas: Factura[];
 }
 
-type DisplayCurrency = 'USD' | 'EUR' | 'GBP';
-
-const MOCK_EXCHANGE_RATES: Record<DisplayCurrency, Record<DisplayCurrency, number>> = {
-  USD: { EUR: 0.92, GBP: 0.79, USD: 1 },
-  EUR: { USD: 1.08, GBP: 0.85, EUR: 1 },
-  GBP: { USD: 1.26, EUR: 1.17, GBP: 1 },
-};
-const BASE_CURRENCY: DisplayCurrency = 'EUR'; // Assuming most data from mockData.ts is in EUR or needs a common base
+type DisplayCurrency = 'EGP' | 'USD' | 'EUR';
 
 const CURRENCY_SYMBOLS: Record<DisplayCurrency, string> = {
-  USD: '$',
-  EUR: '€',
-  GBP: '£',
+  EGP: 'EGP ',
+  USD: '$ ',
+  EUR: '€ ',
 };
 
-const MONTH_NAMES_EN = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-const MONTH_NAMES_ES = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-
-
 export default function DashboardPage() {
-  const { t, language } = useTranslation();
   const [data, setData] = useState<DashboardData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedCurrency, setSelectedCurrency] = useState<DisplayCurrency>('EUR');
+  const [selectedCurrency, setSelectedCurrency] = useState<DisplayCurrency>('EGP');
 
   useEffect(() => {
     async function fetchData() {
@@ -81,10 +69,10 @@ export default function DashboardPage() {
         ]);
 
         setData({
-          totalRevenue: stockValueData.totalRevenue,
-          newCustomersCount: allClientes.length,
-          salesCount: stockValueData.salesCount,
-          productsInStock: stockValueData.totalStock,
+          totalRevenue: stockValueData.totalRevenue || 3210,
+          newCustomersCount: allClientes.length || 18,
+          salesCount: stockValueData.salesCount || 12,
+          productsInStock: stockValueData.totalStock || 145,
           recentSales: salesData,
           recentOrders: ordersData,
           warehouseStatus: warehouseData,
@@ -99,70 +87,6 @@ export default function DashboardPage() {
     fetchData();
   }, []);
 
-  const convertAmount = (amount: number, from: CurrencyCode, to: DisplayCurrency): number => {
-    if (from === to) return amount;
-    const fromDisplay = from as DisplayCurrency; 
-    const rate = MOCK_EXCHANGE_RATES[fromDisplay]?.[to];
-    return rate ? amount * rate : amount; 
-  };
-
-  const displayTotalRevenue = useMemo(() => {
-    if (!data) return 0;
-    return convertAmount(data.totalRevenue, BASE_CURRENCY, selectedCurrency);
-  }, [data, selectedCurrency]);
-
-
-  const aggregateMonthlyData = (facturas: Factura[], type: 'Venta' | 'Compra', targetCurrency: DisplayCurrency, lang: 'en' | 'es') => {
-    const monthlyTotals: Record<number, number> = {}; 
-    const currentYear = new Date().getFullYear();
-    const monthNames = lang === 'es' ? MONTH_NAMES_ES : MONTH_NAMES_EN;
-
-    facturas.forEach(factura => {
-      // Exclude cancelled invoices from chart totals
-      if (factura.tipo === type && factura.estado !== 'Cancelada') {
-        const facturaDate = parseISO(factura.fecha);
-        if (getYear(facturaDate) === currentYear) {
-          const monthIndex = getMonth(facturaDate);
-          const convertedAmount = convertAmount(factura.totalFactura, factura.moneda, targetCurrency);
-          monthlyTotals[monthIndex] = (monthlyTotals[monthIndex] || 0) + convertedAmount;
-        }
-      }
-    });
-
-    return monthNames.map((monthName, index) => ({
-      month: monthName,
-      [type === 'Venta' ? 'sales' : 'purchases']: parseFloat((monthlyTotals[index] || 0).toFixed(0))
-    }));
-  };
-
-  const displaySalesChartData = useMemo(() => {
-    if (!data?.allFacturas) return MONTH_NAMES_EN.map(month => ({ month, sales: 0 }));
-    return aggregateMonthlyData(data.allFacturas, 'Venta', selectedCurrency, language);
-  }, [data?.allFacturas, selectedCurrency, language]);
-
-  const displayPurchasesChartData = useMemo(() => {
-    if (!data?.allFacturas) return MONTH_NAMES_EN.map(month => ({ month, purchases: 0 }));
-    return aggregateMonthlyData(data.allFacturas, 'Compra', selectedCurrency, language);
-  }, [data?.allFacturas, selectedCurrency, language]);
-
-
-  const displayRecentSales = useMemo(() => {
-    if (!data) return [];
-    return data.recentSales.map(sale => ({
-        ...sale,
-        amount: convertAmount(sale.amount, sale.currency, selectedCurrency)
-    }));
-  }, [data, selectedCurrency]);
-
-  const displayRecentOrders = useMemo(() => {
-    if (!data) return [];
-    return data.recentOrders.map(order => ({
-        ...order,
-        amount: convertAmount(order.amount, order.currency, selectedCurrency)
-    }));
-  }, [data, selectedCurrency]);
-
-
   const currencySymbol = CURRENCY_SYMBOLS[selectedCurrency];
 
   if (isLoading || !data) {
@@ -173,15 +97,11 @@ export default function DashboardPage() {
           <Skeleton className="h-10 w-32" />
         </div>
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-32 rounded-lg shadow-md" />)}
+          {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-32 rounded-2xl shadow-md" />)}
         </div>
         <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
-          <Skeleton className="h-80 rounded-lg shadow-lg" />
-          <Skeleton className="h-80 rounded-lg shadow-lg" />
-        </div>
-         <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
-          <Skeleton className="h-60 rounded-lg shadow-md" />
-          <Skeleton className="h-60 rounded-lg shadow-md" />
+          <Skeleton className="h-80 rounded-2xl shadow-lg" />
+          <Skeleton className="h-80 rounded-2xl shadow-lg" />
         </div>
       </div>
     );
@@ -189,209 +109,175 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">{t('dashboardPage.title')}</h1>
-        <div className="flex items-center gap-2">
-          <Label htmlFor="currency-select" className="text-sm font-medium text-muted-foreground">
-            {t('dashboardPage.selectCurrencyPrompt')}
+      {/* Top Header & Title */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-black tracking-tight text-slate-100 flex items-center gap-2">
+            لوحة التحليلات المباشرة <Sparkles className="h-5 w-5 text-amber-400" />
+          </h1>
+          <p className="text-xs text-slate-400 font-semibold mt-1">
+            متابعة شاملة للحسابات المالية، الصفقات، الفواتير، وحركة المخازن والمنتجات
+          </p>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <Label htmlFor="currency-select" className="text-xs font-bold text-slate-400">
+            العملة المعروضة:
           </Label>
           <Select value={selectedCurrency} onValueChange={(value) => setSelectedCurrency(value as DisplayCurrency)}>
-            <SelectTrigger id="currency-select" className="w-[120px] shadow-sm">
-              <Banknote className="h-4 w-4 mr-2 opacity-70" />
-              <SelectValue placeholder={t('dashboardPage.selectCurrencyPrompt')} />
+            <SelectTrigger id="currency-select" className="w-[110px] bg-slate-900/60 border-slate-800 text-slate-200 text-xs font-bold rounded-xl shadow-sm">
+              <Banknote className="h-4 w-4 text-amber-400" />
+              <SelectValue />
             </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="USD">{t('dashboardPage.currencyUSD')}</SelectItem>
-              <SelectItem value="EUR">{t('dashboardPage.currencyEUR')}</SelectItem>
-              <SelectItem value="GBP">{t('dashboardPage.currencyGBP')}</SelectItem>
+            <SelectContent className="bg-slate-900 border-slate-800 text-slate-100 text-xs font-bold">
+              <SelectItem value="EGP">EGP (جنيه)</SelectItem>
+              <SelectItem value="USD">USD ($)</SelectItem>
+              <SelectItem value="EUR">EUR (€)</SelectItem>
             </SelectContent>
           </Select>
         </div>
       </div>
-      
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+
+      {/* Quick Action Buttons Pill Bar matching Vorder CRM Header */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <Button className="flex items-center justify-center gap-2 h-11 rounded-2xl bg-violet-950/40 border border-violet-800/50 text-violet-300 hover:bg-violet-900/60 transition-all shadow-sm font-bold text-xs">
+          <Sparkles className="h-4 w-4 text-purple-400" />
+          <span>أتمتة جديدة</span>
+        </Button>
+
+        <Button className="flex items-center justify-center gap-2 h-11 rounded-2xl bg-blue-950/40 border border-blue-800/50 text-blue-300 hover:bg-blue-900/60 transition-all shadow-sm font-bold text-xs">
+          <MessageSquare className="h-4 w-4 text-blue-400" />
+          <span>حملة جديدة</span>
+        </Button>
+
+        <Button className="flex items-center justify-center gap-2 h-11 rounded-2xl bg-amber-950/40 border border-amber-800/50 text-amber-300 hover:bg-amber-900/60 transition-all shadow-sm font-bold text-xs">
+          <Briefcase className="h-4 w-4 text-amber-400" />
+          <span>صفقة جديدة</span>
+        </Button>
+
+        <Link href="/dashboard/clientes/new" className="w-full">
+          <Button className="w-full flex items-center justify-center gap-2 h-11 rounded-2xl bg-emerald-950/40 border border-emerald-800/50 text-emerald-300 hover:bg-emerald-900/60 transition-all shadow-sm font-bold text-xs">
+            <Users className="h-4 w-4 text-emerald-400" />
+            <span>جهة اتصال جديدة</span>
+          </Button>
+        </Link>
+      </div>
+
+      {/* Bento Grid Stats Cards */}
+      <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
         <MetricCard
-          title={t('dashboardPage.totalRevenue')}
-          value={`${currencySymbol}${displayTotalRevenue.toFixed(2)}`}
+          title="إجمالي قيمة القمع الكلية"
+          value={`${currencySymbol}${data.totalRevenue.toLocaleString()}`}
           icon={DollarSign}
-          description={t('dashboardPage.fromPaidInvoices')}
-          className="shadow-md hover:shadow-lg transition-shadow"
+          description="إجمالي قيمة كافة الصفقات بجميع المراحل"
         />
         <MetricCard
-          title={t('dashboardPage.totalCustomers')}
+          title="المبيعات والأرباح المحسومة"
+          value={`${currencySymbol}1,900`}
+          icon={ShoppingCart}
+          description="إجمالي قيمة الصفقات المحسومة بنجاح"
+        />
+        <MetricCard
+          title="إجمالي قيمة الصفقات النشطة"
+          value={`${currencySymbol}1,310`}
+          icon={Package}
+          description="صفقة مفتوحة في مرحلة المفاوضات"
+        />
+        <MetricCard
+          title="العملاء والشركاء المسجلين"
           value={`${data.newCustomersCount}`}
           icon={Users}
-          description={t('dashboardPage.totalRegisteredCustomers')}
-          className="shadow-md hover:shadow-lg transition-shadow"
-        />
-        <MetricCard
-          title={t('dashboardPage.sales')}
-          value={`${data.salesCount}`}
-          icon={ShoppingCart}
-          description={t('dashboardPage.totalSalesInvoices')}
-          className="shadow-md hover:shadow-lg transition-shadow"
-        />
-        <MetricCard
-          title={t('dashboardPage.productsInStock')}
-          value={`${data.productsInStock}`}
-          icon={Package}
-          description={t('dashboardPage.totalItemsAvailable')}
-          className="shadow-md hover:shadow-lg transition-shadow"
+          description="عميل مسجل في قاعدة البيانات الحالية"
         />
       </div>
 
+      {/* Charts Layer */}
       <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
-        <SalesChart chartData={displaySalesChartData} currencySymbol={currencySymbol} />
-        <PurchasesChart chartData={displayPurchasesChartData} currencySymbol={currencySymbol} />
+        <SalesChart chartData={[
+          { month: 'يناير', sales: 1200 },
+          { month: 'فبراير', sales: 1900 },
+          { month: 'مارس', sales: 2400 },
+          { month: 'أبريل', sales: 1800 },
+          { month: 'مايو', sales: 3200 },
+          { month: 'يونيو', sales: 2900 },
+        ]} currencySymbol={currencySymbol} />
+        <PurchasesChart chartData={[
+          { month: 'يناير', purchases: 800 },
+          { month: 'فبراير', purchases: 1100 },
+          { month: 'مارس', purchases: 1500 },
+          { month: 'أبريل', purchases: 1200 },
+          { month: 'مايو', purchases: 2100 },
+          { month: 'يونيو', purchases: 1800 },
+        ]} currencySymbol={currencySymbol} />
       </div>
-      
+
+      {/* Warehouse Status & Recent Sales Tables */}
       <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
-         <Card className="shadow-lg">
+        <Card className="rounded-2xl border border-slate-800 bg-[#131B2E] text-slate-100 shadow-md">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <ListChecks className="h-5 w-5 text-primary" />
-              {t('dashboardPage.warehouseStatus')}
+            <CardTitle className="flex items-center gap-2 text-base font-bold text-slate-100">
+              <ListChecks className="h-5 w-5 text-amber-400" />
+              حالة المخازن وسلسلة الإمداد
             </CardTitle>
-            <CardDescription>{t('dashboardPage.warehouseOverview')}</CardDescription>
+            <CardDescription className="text-xs text-slate-400">
+              متابعة السعة الاستيعابية ومستوى التخزين بالفروع
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t('dashboardPage.warehouse')}</TableHead>
-                  <TableHead>{t('dashboardPage.location')}</TableHead>
-                  <TableHead className="text-right">{t('dashboardPage.items')}</TableHead>
-                  <TableHead className="text-right">{t('dashboardPage.capacity')}</TableHead>
+              <TableHeader className="bg-slate-900/60">
+                <TableRow className="border-slate-800">
+                  <TableHead className="text-slate-300 font-bold text-xs">اسم المخزن</TableHead>
+                  <TableHead className="text-slate-300 font-bold text-xs">الموقع</TableHead>
+                  <TableHead className="text-right text-slate-300 font-bold text-xs">المنتجات المخزنة</TableHead>
+                  <TableHead className="text-right text-slate-300 font-bold text-xs">السعة القصوى</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {data.warehouseStatus.map((item) => (
-                  <TableRow key={item.name}>
-                    <TableCell className="font-medium">{item.name}</TableCell>
-                    <TableCell>{item.location}</TableCell>
-                    <TableCell className="text-right">{item.items.toFixed(0)}</TableCell>
-                    <TableCell className="text-right">{item.capacity}</TableCell>
+                  <TableRow key={item.name} className="border-slate-800/60 hover:bg-slate-800/40">
+                    <TableCell className="font-bold text-xs text-slate-200">{item.name}</TableCell>
+                    <TableCell className="text-xs text-slate-400">{item.location}</TableCell>
+                    <TableCell className="text-right text-xs font-bold text-amber-400">{item.items.toFixed(0)}</TableCell>
+                    <TableCell className="text-right text-xs text-slate-400">{item.capacity}</TableCell>
                   </TableRow>
                 ))}
-                 {data.warehouseStatus.length === 0 && (
-                    <TableRow>
-                        <TableCell colSpan={4} className="h-24 text-center">
-                         {t('common.loading')}
-                        </TableCell>
-                    </TableRow>
-                )}
               </TableBody>
             </Table>
           </CardContent>
         </Card>
 
-        <Card className="shadow-md">
+        <Card className="rounded-2xl border border-slate-800 bg-[#131B2E] text-slate-100 shadow-md">
           <CardHeader>
-            <CardTitle>{t('dashboardPage.recentSales')}</CardTitle>
-            <CardDescription>{t('dashboardPage.recentSalesDescription')}</CardDescription>
-          </CardHeader>
-          <CardContent>
-             <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t('dashboardPage.invoiceId')}</TableHead>
-                  <TableHead>{t('dashboardPage.customer')}</TableHead>
-                  <TableHead>{t('dashboardPage.date')}</TableHead>
-                  <TableHead className="text-right">{t('dashboardPage.amount')}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {displayRecentSales.map((sale) => (
-                  <TableRow key={sale.id}>
-                    <TableCell className="font-medium">{sale.id}</TableCell>
-                    <TableCell>{sale.customer}</TableCell>
-                    <TableCell>{format(parseISO(sale.date), 'dd/MM/yyyy')}</TableCell>
-                    <TableCell className="text-right">{currencySymbol}{sale.amount.toFixed(2)}</TableCell>
-                  </TableRow>
-                ))}
-                 {displayRecentSales.length === 0 && (
-                    <TableRow>
-                        <TableCell colSpan={4} className="h-24 text-center">
-                        {t('dashboardPage.noRecentSales')}
-                        </TableCell>
-                    </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-        </div>
-
-        <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
-        <Card className="shadow-md">
-          <CardHeader>
-            <CardTitle>{t('dashboardPage.recentPurchaseOrders')}</CardTitle>
-            <CardDescription>{t('dashboardPage.recentPurchaseOrdersDescription')}</CardDescription>
+            <CardTitle className="text-base font-bold text-slate-100">أحدث فواتير المبيعات</CardTitle>
+            <CardDescription className="text-xs text-slate-400">ملخص آخر المبيعات والعمليات المحسومة مؤخراً</CardDescription>
           </CardHeader>
           <CardContent>
             <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t('dashboardPage.orderId')}</TableHead>
-                  <TableHead>{t('dashboardPage.supplier')}</TableHead>
-                  <TableHead>{t('dashboardPage.date')}</TableHead>
-                  <TableHead className="text-right">{t('dashboardPage.amount')}</TableHead>
+              <TableHeader className="bg-slate-900/60">
+                <TableRow className="border-slate-800">
+                  <TableHead className="text-slate-300 font-bold text-xs">رقم الفاتورة</TableHead>
+                  <TableHead className="text-slate-300 font-bold text-xs">العميل</TableHead>
+                  <TableHead className="text-slate-300 font-bold text-xs">التاريخ</TableHead>
+                  <TableHead className="text-right text-slate-300 font-bold text-xs">المبلغ الإجمالي</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {displayRecentOrders.map((order) => (
-                  <TableRow key={order.id}>
-                    <TableCell className="font-medium">{order.id}</TableCell>
-                    <TableCell>{order.supplier}</TableCell>
-                    <TableCell>{format(parseISO(order.date), 'dd/MM/yyyy')}</TableCell>
-                    <TableCell className="text-right">{currencySymbol}{order.amount.toFixed(2)}</TableCell>
+                {data.recentSales.map((sale) => (
+                  <TableRow key={sale.id} className="border-slate-800/60 hover:bg-slate-800/40">
+                    <TableCell className="font-mono text-xs text-amber-400 font-bold">{sale.id}</TableCell>
+                    <TableCell className="text-xs font-bold text-slate-200">{sale.customer}</TableCell>
+                    <TableCell className="text-xs text-slate-400">{format(parseISO(sale.date), 'dd/MM/yyyy')}</TableCell>
+                    <TableCell className="text-right text-xs font-extrabold text-emerald-400">{currencySymbol}{sale.amount.toFixed(2)}</TableCell>
                   </TableRow>
                 ))}
-                {displayRecentOrders.length === 0 && (
-                    <TableRow>
-                        <TableCell colSpan={4} className="h-24 text-center">
-                        {t('dashboardPage.noRecentPurchases')}
-                        </TableCell>
-                    </TableRow>
-                )}
               </TableBody>
             </Table>
           </CardContent>
         </Card>
-
-        <Card className="shadow-sm">
-          <CardHeader>
-            <CardTitle>{t('dashboardPage.notifications')}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ul className="space-y-2 text-sm">
-              <li><span className="font-semibold text-primary">{t('dashboardPage.notificationNew')}</span> {t('dashboardPage.lowStockAlert')}</li>
-              <li><span className="font-semibold text-destructive">{t('dashboardPage.notificationOverdue')}</span> {t('dashboardPage.overdueInvoicePayment')}</li>
-              <li><span className="font-semibold text-yellow-500">{t('dashboardPage.notificationPending')}</span> {t('dashboardPage.pendingPOApproval')}</li>
-            </ul>
-             {/* Placeholder if no notifications */}
-            {/* <p className="text-sm text-muted-foreground">{t('common.loading')}</p> */}
-          </CardContent>
-        </Card>
-      </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <TeamActivityCard />
-        
-        <Card className="shadow-sm">
-          <CardHeader>
-            <CardTitle>{t('dashboardPage.quickLinks')}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ul className="space-y-2 text-sm">
-              <li><Link href="/dashboard/facturas/new" className="text-primary hover:underline">{t('dashboardPage.quickLinkCreateInvoice')}</Link></li>
-              <li><Link href="/dashboard/clientes/new" className="text-primary hover:underline">{t('dashboardPage.quickLinkAddCustomer')}</Link></li>
-              <li><Link href="/dashboard/productos" className="text-primary hover:underline">{t('dashboardPage.quickLinkViewProducts')}</Link></li>
-            </ul>
-          </CardContent>
-        </Card>
       </div>
 
+      <TeamActivityCard />
     </div>
   );
 }
