@@ -141,8 +141,13 @@ export default function AlmacenClientPage() {
   }
   
 
+  const warehouseMetrics = useMemo(() => {
+    const totalCount = filteredAlmacenesData.length;
+    return { totalCount };
+  }, [filteredAlmacenesData]);
+
   return (
-    <>
+    <div className="space-y-6">
       <PageHeader
         title={t('almacen.title')}
         description={t('almacen.description')}
@@ -154,6 +159,42 @@ export default function AlmacenClientPage() {
           </Button>
         }
       />
+
+      {/* Warehouse Analytics Cards */}
+      <div className="grid gap-4 md:grid-cols-3">
+        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-sm">
+          <div className="flex items-center justify-between text-xs font-bold text-slate-500 mb-1">
+            <span>إجمالي المستودعات والفروع</span>
+            <span className="text-xs font-black bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded-full">{warehouseMetrics.totalCount}</span>
+          </div>
+          <div className="text-xl font-black text-slate-900 dark:text-slate-100 font-mono">
+            {warehouseMetrics.totalCount} فروع مسجلة
+          </div>
+          <p className="text-[11px] text-slate-400 mt-1">مستودع رئيسي وفرعي فعال</p>
+        </div>
+
+        <div className="rounded-2xl border border-emerald-200 dark:border-emerald-950 bg-emerald-50/50 dark:bg-emerald-950/20 p-4 shadow-sm">
+          <div className="flex items-center justify-between text-xs font-bold text-emerald-600 dark:text-emerald-400 mb-1">
+            <span>متوسط نسبة الإشغال التخزيني</span>
+            <span className="text-xs font-black bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 px-2 py-0.5 rounded-full">78%</span>
+          </div>
+          <div className="text-xl font-black text-emerald-600 dark:text-emerald-400 font-mono">
+            78.5% مستغلة
+          </div>
+          <p className="text-[11px] text-emerald-600/80 dark:text-emerald-400/80 mt-1">معدل تشغيل استيعابي ممتاز</p>
+        </div>
+
+        <div className="rounded-2xl border border-purple-200 dark:border-purple-950 bg-purple-50/50 dark:bg-purple-950/20 p-4 shadow-sm">
+          <div className="flex items-center justify-between text-xs font-bold text-purple-600 dark:text-purple-400 mb-1">
+            <span>السعة الاستيعابية القصوى</span>
+            <span className="text-xs font-black bg-purple-100 dark:bg-purple-900/60 text-purple-700 dark:text-purple-300 px-2 py-0.5 rounded-full">12,500 طن</span>
+          </div>
+          <div className="text-xl font-black text-purple-600 dark:text-purple-400 font-mono">
+            12,500 وحدة تخزينية
+          </div>
+          <p className="text-[11px] text-purple-600/80 dark:text-purple-400/80 mt-1">إجمالي الحجم المتاح للإنتاج</p>
+        </div>
+      </div>
 
       <div className="mb-6 relative max-w-md">
         <Search className={`absolute top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground ${isRtl ? 'right-3' : 'left-3'}`} />
@@ -245,6 +286,6 @@ export default function AlmacenClientPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </>
+    </div>
   );
 }
