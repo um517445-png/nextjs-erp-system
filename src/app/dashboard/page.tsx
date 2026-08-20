@@ -138,27 +138,33 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Quick Action Buttons Pill Bar matching Vorder CRM Header */}
+      {/* ERP Quick Action Buttons */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <Button className="flex items-center justify-center gap-2 h-11 rounded-2xl bg-violet-950/40 border border-violet-800/50 text-violet-300 hover:bg-violet-900/60 transition-all shadow-sm font-bold text-xs">
-          <Sparkles className="h-4 w-4 text-purple-400" />
-          <span>أتمتة جديدة</span>
-        </Button>
+        <Link href="/dashboard/facturas/new" className="w-full">
+          <Button className="w-full flex items-center justify-center gap-2 h-11 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20 transition-all shadow-sm font-bold text-xs">
+            <DollarSign className="h-4 w-4 text-amber-500" />
+            <span>إنشاء فاتورة جديدة</span>
+          </Button>
+        </Link>
 
-        <Button className="flex items-center justify-center gap-2 h-11 rounded-2xl bg-blue-950/40 border border-blue-800/50 text-blue-300 hover:bg-blue-900/60 transition-all shadow-sm font-bold text-xs">
-          <MessageSquare className="h-4 w-4 text-blue-400" />
-          <span>حملة جديدة</span>
-        </Button>
+        <Link href="/dashboard/productos/new" className="w-full">
+          <Button className="w-full flex items-center justify-center gap-2 h-11 rounded-2xl bg-blue-500/10 border border-blue-500/30 text-blue-600 dark:text-blue-400 hover:bg-blue-500/20 transition-all shadow-sm font-bold text-xs">
+            <Package className="h-4 w-4 text-blue-500" />
+            <span>إضافة صنف للمخزون</span>
+          </Button>
+        </Link>
 
-        <Button className="flex items-center justify-center gap-2 h-11 rounded-2xl bg-amber-950/40 border border-amber-800/50 text-amber-300 hover:bg-amber-900/60 transition-all shadow-sm font-bold text-xs">
-          <Briefcase className="h-4 w-4 text-amber-400" />
-          <span>صفقة جديدة</span>
-        </Button>
+        <Link href="/dashboard/empleados/new" className="w-full">
+          <Button className="w-full flex items-center justify-center gap-2 h-11 rounded-2xl bg-purple-500/10 border border-purple-500/30 text-purple-600 dark:text-purple-400 hover:bg-purple-500/20 transition-all shadow-sm font-bold text-xs">
+            <Users className="h-4 w-4 text-purple-500" />
+            <span>تسجيل موظف جديد</span>
+          </Button>
+        </Link>
 
         <Link href="/dashboard/clientes/new" className="w-full">
-          <Button className="w-full flex items-center justify-center gap-2 h-11 rounded-2xl bg-emerald-950/40 border border-emerald-800/50 text-emerald-300 hover:bg-emerald-900/60 transition-all shadow-sm font-bold text-xs">
-            <Users className="h-4 w-4 text-emerald-400" />
-            <span>جهة اتصال جديدة</span>
+          <Button className="w-full flex items-center justify-center gap-2 h-11 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20 transition-all shadow-sm font-bold text-xs">
+            <Users className="h-4 w-4 text-emerald-500" />
+            <span>إضافة عميل جديد</span>
           </Button>
         </Link>
       </div>
