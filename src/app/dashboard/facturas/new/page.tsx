@@ -1,27 +1,26 @@
-
 "use client";
 import { useSearchParams, useRouter } from 'next/navigation';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useTranslation } from '@/hooks/useTranslation';
 import { FacturaForm, type FacturaFormValues } from '@/components/crud/FacturaForm';
 import { addFactura } from '@/lib/mockData';
 import { useToast } from '@/hooks/use-toast';
 import type { FacturaTipo } from '@/types';
 import { format } from 'date-fns';
-import { useAuth } from '@/contexts/AuthContext'; // Import useAuth
+import { useAuth } from '@/contexts/AuthContext';
 
 const NO_WAREHOUSE_SENTINEL_VALUE = "__NO_WAREHOUSE_SENTINEL__";
 
-export default function NewFacturaPage() {
+function NewFacturaContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { t } = useTranslation();
   const { toast } = useToast();
-  const { user } = useAuth(); // Get user from context
+  const { user } = useAuth();
 
   const [initialType, setInitialType] = useState<FacturaTipo | undefined>(undefined);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -38,7 +37,7 @@ export default function NewFacturaPage() {
   }, [searchParams]);
 
   const handleSubmit = async (values: FacturaFormValues) => {
-    if (!user) { // Check if user is available
+    if (!user) {
         toast({
             title: t('common.error'),
             description: "User not authenticated.",
@@ -56,7 +55,6 @@ export default function NewFacturaPage() {
     };
 
     try {
-      // Pass user.id and t to addFactura
       const newFactura = await addFactura(facturaToCreate, user.id, t); 
       toast({
         title: t('common.success'),
@@ -91,9 +89,7 @@ export default function NewFacturaPage() {
                      : initialType === 'Compra' ? t('sidebar.facturasCompras')
                      : t('sidebar.facturasTodas');
 
-
   const formDefaultValues: Partial<FacturaFormValues> = initialType ? { tipo: initialType, almacenId: "" } : { tipo: 'Venta', almacenId: "" };
-
 
   return (
     <>
@@ -120,4 +116,10 @@ export default function NewFacturaPage() {
   );
 }
 
-    
+export default function NewFacturaPage() {
+  return (
+    <Suspense fallback={<div className="p-6 text-center">جاري التحميل...</div>}>
+      <NewFacturaContent />
+    </Suspense>
+  );
+}
