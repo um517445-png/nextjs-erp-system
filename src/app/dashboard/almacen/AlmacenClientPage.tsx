@@ -27,7 +27,7 @@ export default function AlmacenClientPage() {
   const [almacenToDelete, setAlmacenToDelete] = useState<Almacen | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const { toast } = useToast();
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const { user } = useAuth();
 
   useEffect(() => {
@@ -111,14 +111,16 @@ export default function AlmacenClientPage() {
     setAlmacenToDelete(almacen);
   };
 
+  const isRtl = language === 'ar';
+
   if (isLoading) {
     return (
       <>
-        <PageHeader title={t('warehouse.title')} description={t('common.loading')} actionButton={<Skeleton className="h-10 w-40" />} />
+        <PageHeader title={t('almacen.title')} description={t('common.loading')} actionButton={<Skeleton className="h-10 w-32" />} />
         <div className="mb-4">
           <Skeleton className="h-10 w-full max-w-sm" />
         </div>
-        <div className="rounded-md border shadow-sm">
+        <div className="rounded-xl border border-border bg-card shadow-xl p-4">
           <Table>
             <TableHeader>
               <TableRow>
@@ -142,32 +144,32 @@ export default function AlmacenClientPage() {
   return (
     <>
       <PageHeader
-        title={t('warehouse.title')}
-        description={t('warehouse.description')}
+        title={t('almacen.title')}
+        description={t('almacen.description')}
         actionButton={
-          <Button asChild className="shadow-sm">
+          <Button asChild className="shadow-lg shadow-amber-500/10 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-xl">
             <Link href="/dashboard/almacen/new">
-              <PlusCircle className="mr-2 h-4 w-4" /> {t('warehouse.addNewWarehouseButton')}
+              <PlusCircle className={isRtl ? "ml-2 h-4 w-4" : "mr-2 h-4 w-4"} /> {t('almacen.addNewAlmacenButton')}
             </Link>
           </Button>
         }
       />
 
-      <div className="mb-6 relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+      <div className="mb-6 relative max-w-md">
+        <Search className={`absolute top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground ${isRtl ? 'right-3' : 'left-3'}`} />
         <Input
           type="search"
-          placeholder={t('warehouse.searchPlaceholder')}
+          placeholder={t('almacen.searchPlaceholder')}
           value={searchTerm}
           onChange={(e) => {
             setSearchTerm(e.target.value);
             setCurrentPage(1);
           }}
-          className="w-full max-w-md pl-10 shadow-sm"
+          className={`w-full bg-card border-border text-foreground rounded-xl ${isRtl ? 'pr-10 pl-3' : 'pl-10 pr-3'}`}
         />
       </div>
 
-      <div className="rounded-md border bg-card shadow-sm">
+      <div className="rounded-2xl border border-border bg-card shadow-xl overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>
@@ -210,8 +212,8 @@ export default function AlmacenClientPage() {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={5} className="h-24 text-center">
-                  {searchTerm ? t('warehouse.noWarehousesFound') : t('common.loading')}
+                <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
+                  {t('almacen.noAlmacenesFound')}
                 </TableCell>
               </TableRow>
             )}
