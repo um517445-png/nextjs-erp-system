@@ -176,8 +176,15 @@ export default function ProductoClientPage() {
     );
   }
 
+  const productMetrics = useMemo(() => {
+    const totalCount = filteredProductosData.length;
+    const totalValue = filteredProductosData.reduce((sum, p) => sum + ((p.stock || 0) * (p.precioVenta || 0)), 0);
+    const lowStockCount = filteredProductosData.filter(p => (p.stock || 0) <= 5).length;
+    return { totalCount, totalValue, lowStockCount };
+  }, [filteredProductosData]);
+
   return (
-    <>
+    <div className="space-y-6">
       <PageHeader
         title={t('productos.title')}
         description={t('productos.description')}
@@ -189,6 +196,42 @@ export default function ProductoClientPage() {
           </Button>
         }
       />
+
+      {/* Product Analytics Cards */}
+      <div className="grid gap-4 md:grid-cols-3">
+        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-sm">
+          <div className="flex items-center justify-between text-xs font-bold text-slate-500 mb-1">
+            <span>إجمالي الأصناف المسجلة</span>
+            <Filter className="h-4 w-4 text-blue-500" />
+          </div>
+          <div className="text-xl font-black text-slate-900 dark:text-slate-100 font-mono">
+            {productMetrics.totalCount} صنف
+          </div>
+          <p className="text-[11px] text-slate-400 mt-1">منتج معرف في دليل الأصناف</p>
+        </div>
+
+        <div className="rounded-2xl border border-amber-200 dark:border-amber-950 bg-amber-50/50 dark:bg-amber-950/20 p-4 shadow-sm">
+          <div className="flex items-center justify-between text-xs font-bold text-amber-600 dark:text-amber-400 mb-1">
+            <span>القيمة النقدية الكلية للمخزون</span>
+            <span className="text-xs font-black bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300 px-2 py-0.5 rounded-full">سعر البيع</span>
+          </div>
+          <div className="text-xl font-black text-amber-600 dark:text-amber-400 font-mono">
+            EGP {productMetrics.totalValue.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+          </div>
+          <p className="text-[11px] text-amber-600/80 dark:text-amber-400/80 mt-1">إجمالي البضائع بالمستودعات</p>
+        </div>
+
+        <div className="rounded-2xl border border-rose-200 dark:border-rose-950 bg-rose-50/50 dark:bg-rose-950/20 p-4 shadow-sm">
+          <div className="flex items-center justify-between text-xs font-bold text-rose-600 dark:text-rose-400 mb-1">
+            <span>أصناف تحت إنذار النفاذ</span>
+            <span className="text-xs font-black bg-rose-100 dark:bg-rose-900/60 text-rose-700 dark:text-rose-300 px-2 py-0.5 rounded-full">{productMetrics.lowStockCount}</span>
+          </div>
+          <div className="text-xl font-black text-rose-600 dark:text-rose-400 font-mono">
+            {productMetrics.lowStockCount} أصناف حرجة
+          </div>
+          <p className="text-[11px] text-rose-600/80 dark:text-rose-400/80 mt-1">تتطلب إعادة طلب فورية</p>
+        </div>
+      </div>
 
       <div className="mb-6 flex flex-col md:flex-row items-stretch md:items-center gap-4">
         <div className="relative flex-grow max-w-md">
@@ -317,6 +360,6 @@ export default function ProductoClientPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </>
+    </div>
   );
 }
