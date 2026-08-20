@@ -27,7 +27,7 @@ export default function ProveedorClientPage() {
   const [proveedorToDelete, setProveedorToDelete] = useState<Proveedor | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const { toast } = useToast();
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const { user } = useAuth();
 
   useEffect(() => {
@@ -111,24 +111,26 @@ export default function ProveedorClientPage() {
     setProveedorToDelete(proveedor);
   };
 
+  const isRtl = language === 'ar';
+
   if (isLoading) {
     return (
       <>
-        <PageHeader title={t('suppliers.title')} description={t('common.loading')} actionButton={<Skeleton className="h-10 w-36" />} />
+        <PageHeader title={t('proveedores.title')} description={t('common.loading')} actionButton={<Skeleton className="h-10 w-32" />} />
         <div className="mb-4">
           <Skeleton className="h-10 w-full max-w-sm" />
         </div>
-        <div className="rounded-md border shadow-sm">
+        <div className="rounded-xl border border-border bg-card shadow-xl p-4">
           <Table>
             <TableHeader>
               <TableRow>
-                {[...Array(5)].map((_, i) => <TableHead key={i}><Skeleton className="h-6 w-24" /></TableHead>)}
+                {[...Array(6)].map((_, i) => <TableHead key={i}><Skeleton className="h-6 w-24" /></TableHead>)}
               </TableRow>
             </TableHeader>
             <TableBody>
               {[...Array(3)].map((_, i) => (
                 <TableRow key={i}>
-                  {[...Array(5)].map((_, j) => <TableCell key={j}><Skeleton className="h-6 w-full" /></TableCell>)}
+                  {[...Array(6)].map((_, j) => <TableCell key={j}><Skeleton className="h-6 w-full" /></TableCell>)}
                 </TableRow>
               ))}
             </TableBody>
@@ -141,32 +143,32 @@ export default function ProveedorClientPage() {
   return (
     <>
       <PageHeader
-        title={t('suppliers.title')}
-        description={t('suppliers.description')}
+        title={t('proveedores.title')}
+        description={t('proveedores.description')}
         actionButton={
-          <Button asChild className="shadow-sm">
+          <Button asChild className="shadow-lg shadow-amber-500/10 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-xl">
             <Link href="/dashboard/proveedores/new">
-              <PlusCircle className="mr-2 h-4 w-4" /> {t('suppliers.addNewSupplierButton')}
+              <PlusCircle className={isRtl ? "ml-2 h-4 w-4" : "mr-2 h-4 w-4"} /> {t('proveedores.addNewProveedorButton')}
             </Link>
           </Button>
         }
       />
 
-      <div className="mb-6 relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+      <div className="mb-6 relative max-w-md">
+        <Search className={`absolute top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground ${isRtl ? 'right-3' : 'left-3'}`} />
         <Input
           type="search"
-          placeholder={t('suppliers.searchPlaceholder')}
+          placeholder={t('proveedores.searchPlaceholder')}
           value={searchTerm}
           onChange={(e) => {
             setSearchTerm(e.target.value);
             setCurrentPage(1);
           }}
-          className="w-full max-w-md pl-10 shadow-sm"
+          className={`w-full bg-card border-border text-foreground rounded-xl ${isRtl ? 'pr-10 pl-3' : 'pl-10 pr-3'}`}
         />
       </div>
 
-      <div className="rounded-md border bg-card shadow-sm">
+      <div className="rounded-2xl border border-border bg-card shadow-xl overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>
@@ -211,8 +213,8 @@ export default function ProveedorClientPage() {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={6} className="h-24 text-center">
-                  {searchTerm ? t('suppliers.noSuppliersFound') : t('common.loading')}
+                <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+                  {t('proveedores.noProveedoresFound')}
                 </TableCell>
               </TableRow>
             )}
