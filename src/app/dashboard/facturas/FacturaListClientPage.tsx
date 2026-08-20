@@ -185,8 +185,20 @@ export default function FacturaListClientPage({
     );
   }
 
+  const metrics = useMemo(() => {
+    const total = filteredFacturas.reduce((sum, f) => sum + (f.totalFactura || 0), 0);
+    const paid = filteredFacturas.filter(f => f.estado === 'Pagada');
+    const paidSum = paid.reduce((sum, f) => sum + (f.totalFactura || 0), 0);
+    const pending = filteredFacturas.filter(f => f.estado === 'Pendiente');
+    const pendingSum = pending.reduce((sum, f) => sum + (f.totalFactura || 0), 0);
+    const cancelled = filteredFacturas.filter(f => f.estado === 'Cancelada');
+    const cancelledSum = cancelled.reduce((sum, f) => sum + (f.totalFactura || 0), 0);
+
+    return { total, paidCount: paid.length, paidSum, pendingCount: pending.length, pendingSum, cancelledCount: cancelled.length, cancelledSum };
+  }, [filteredFacturas]);
+
   return (
-    <>
+    <div className="space-y-6">
       <PageHeader
         title={t(pageTitleKey)}
         description={t(pageDescriptionKey)}
@@ -200,6 +212,53 @@ export default function FacturaListClientPage({
           ) : null
         }
       />
+
+      {/* Invoice Analytics Metric Cards */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-sm">
+          <div className="flex items-center justify-between text-xs font-bold text-slate-500 mb-1">
+            <span>إجمالي قيمة الفواتير</span>
+            <Filter className="h-4 w-4 text-amber-500" />
+          </div>
+          <div className="text-xl font-black text-slate-900 dark:text-slate-100 font-mono">
+            EGP {metrics.total.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+          </div>
+          <p className="text-[11px] text-slate-400 mt-1">{filteredFacturas.length} فاتورة مسجلة بالنظام</p>
+        </div>
+
+        <div className="rounded-2xl border border-emerald-200 dark:border-emerald-950 bg-emerald-50/50 dark:bg-emerald-950/20 p-4 shadow-sm">
+          <div className="flex items-center justify-between text-xs font-bold text-emerald-600 dark:text-emerald-400 mb-1">
+            <span>الفواتير المدفوعة</span>
+            <span className="text-xs font-black bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 px-2 py-0.5 rounded-full">{metrics.paidCount}</span>
+          </div>
+          <div className="text-xl font-black text-emerald-600 dark:text-emerald-400 font-mono">
+            EGP {metrics.paidSum.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+          </div>
+          <p className="text-[11px] text-emerald-600/80 dark:text-emerald-400/80 mt-1">عمليات محسومة بالكامل</p>
+        </div>
+
+        <div className="rounded-2xl border border-amber-200 dark:border-amber-950 bg-amber-50/50 dark:bg-amber-950/20 p-4 shadow-sm">
+          <div className="flex items-center justify-between text-xs font-bold text-amber-600 dark:text-amber-400 mb-1">
+            <span>الفواتير المعلقة</span>
+            <span className="text-xs font-black bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300 px-2 py-0.5 rounded-full">{metrics.pendingCount}</span>
+          </div>
+          <div className="text-xl font-black text-amber-600 dark:text-amber-400 font-mono">
+            EGP {metrics.pendingSum.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+          </div>
+          <p className="text-[11px] text-amber-600/80 dark:text-amber-400/80 mt-1">بانتظار التحصيل والسداد</p>
+        </div>
+
+        <div className="rounded-2xl border border-rose-200 dark:border-rose-950 bg-rose-50/50 dark:bg-rose-950/20 p-4 shadow-sm">
+          <div className="flex items-center justify-between text-xs font-bold text-rose-600 dark:text-rose-400 mb-1">
+            <span>الفواتير الملغاة</span>
+            <span className="text-xs font-black bg-rose-100 dark:bg-rose-900/60 text-rose-700 dark:text-rose-300 px-2 py-0.5 rounded-full">{metrics.cancelledCount}</span>
+          </div>
+          <div className="text-xl font-black text-rose-600 dark:text-rose-400 font-mono">
+            EGP {metrics.cancelledSum.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+          </div>
+          <p className="text-[11px] text-rose-600/80 dark:text-rose-400/80 mt-1">عمليات ملغاة أو مرتجعة</p>
+        </div>
+      </div>
 
       <div className="mb-6 flex items-center gap-4">
         <div className="relative flex-grow">
@@ -333,7 +392,7 @@ export default function FacturaListClientPage({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </>
+    </div>
   );
 }
 
