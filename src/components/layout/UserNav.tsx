@@ -1,4 +1,3 @@
-
 "use client";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -11,22 +10,21 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  DropdownMenuSub,
-  DropdownMenuSubTrigger,
-  DropdownMenuPortal,
-  DropdownMenuSubContent,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from '@/contexts/AuthContext';
-import { LogOut, Settings, UserCircle, Globe } from "lucide-react";
+import { LogOut, Settings, UserCircle } from "lucide-react";
 import { useTranslation } from "@/hooks/useTranslation";
-import { LanguageSwitcher } from "./LanguageSwitcher";
+import { ThemeToggle } from "./ThemeToggle";
+import { LanguageToggle } from "./LanguageToggle";
 
 export function UserNav() {
   const { user, logout } = useAuth();
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
+
+  const isRtl = language === 'ar';
 
   if (!user) {
-    return null; // Or a loading indicator
+    return null;
   }
 
   const getInitials = (name: string) => {
@@ -39,58 +37,64 @@ export function UserNav() {
   };
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-          <Avatar className="h-10 w-10 border-2 border-primary">
-            <AvatarImage src={`https://picsum.photos/seed/${user.email}/40/40`} alt={user.name} data-ai-hint="user avatar" />
-            <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
-              {getInitials(user.name)}
-            </AvatarFallback>
-          </Avatar>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-56" align="end" forceMount>
-        <DropdownMenuLabel className="font-normal">
-          <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">{user.name}</p>
-            <p className="text-xs leading-none text-muted-foreground">
-              {user.email}
-            </p>
-          </div>
-        </DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuGroup>
-          <DropdownMenuItem asChild>
-            <Link href="/dashboard/profile">
-              <UserCircle className="mr-2 h-4 w-4" />
-              <span>{t('userNav.profile')}</span>
-            </Link>
+    <div className="flex items-center gap-2.5">
+      {/* Language Switcher (AR / EN) */}
+      <LanguageToggle />
+
+      {/* Theme Toggle Sun/Moon Button */}
+      <ThemeToggle />
+
+      {/* User Profile Pill & Dropdown */}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" className="relative flex items-center gap-2.5 h-10 px-2 rounded-full border border-border bg-card hover:bg-muted transition-all">
+            <Avatar className="h-8 w-8 border border-amber-500/40">
+              <AvatarImage src={`https://picsum.photos/seed/${user.email}/40/40`} alt={user.name} />
+              <AvatarFallback className="bg-amber-500 text-slate-950 font-bold text-xs">
+                {getInitials(user.name)}
+              </AvatarFallback>
+            </Avatar>
+            <span className="text-xs font-semibold text-foreground hidden md:inline-block">
+              {user.name}
+            </span>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent className="w-64 p-2 bg-card border-border text-card-foreground shadow-xl rounded-2xl" align="end" forceMount>
+          <DropdownMenuLabel className="font-normal p-2">
+            <div className="flex flex-col space-y-1.5">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-bold text-foreground">{user.name}</p>
+                <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                  SUPER ADMIN ⚡
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground font-mono">
+                {user.email}
+              </p>
+            </div>
+          </DropdownMenuLabel>
+          <DropdownMenuSeparator className="bg-border" />
+          <DropdownMenuGroup>
+            <DropdownMenuItem asChild className="hover:bg-muted cursor-pointer">
+              <Link href="/dashboard/profile" className="flex items-center gap-2 text-xs font-medium">
+                <UserCircle className="h-4 w-4 text-amber-500" />
+                <span>{isRtl ? 'الملف الشخصي' : 'User Profile'}</span>
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild className="hover:bg-muted cursor-pointer">
+              <Link href="/dashboard/settings" className="flex items-center gap-2 text-xs font-medium">
+                <Settings className="h-4 w-4 text-amber-500" />
+                <span>{isRtl ? 'إعدادات النظام' : 'System Settings'}</span>
+              </Link>
+            </DropdownMenuItem>
+          </DropdownMenuGroup>
+          <DropdownMenuSeparator className="bg-border" />
+          <DropdownMenuItem onClick={logout} className="hover:bg-red-500/10 text-red-500 cursor-pointer">
+            <LogOut className={isRtl ? "ml-2 h-4 w-4" : "mr-2 h-4 w-4"} />
+            <span>{isRtl ? 'تسجيل الخروج' : 'Logout'}</span>
           </DropdownMenuItem>
-          <DropdownMenuItem asChild>
-            <Link href="/dashboard/settings">
-              <Settings className="mr-2 h-4 w-4" />
-              <span>{t('userNav.settings')}</span>
-            </Link>
-          </DropdownMenuItem>
-          <DropdownMenuSub>
-            <DropdownMenuSubTrigger>
-              <Globe className="mr-2 h-4 w-4" />
-              <span>{t('userNav.language')}</span>
-            </DropdownMenuSubTrigger>
-            <DropdownMenuPortal>
-              <DropdownMenuSubContent>
-                <LanguageSwitcher />
-              </DropdownMenuSubContent>
-            </DropdownMenuPortal>
-          </DropdownMenuSub>
-        </DropdownMenuGroup>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={logout}>
-          <LogOut className="mr-2 h-4 w-4" />
-          <span>{t('userNav.logout')}</span>
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
   );
 }
