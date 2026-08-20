@@ -33,7 +33,7 @@ export default function ProductoClientPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedCurrencies, setSelectedCurrencies] = useState<Set<CurrencyCode>>(new Set(ALL_PRODUCT_CURRENCIES));
   const { toast } = useToast();
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const { user } = useAuth();
 
   useEffect(() => {
@@ -146,15 +146,17 @@ export default function ProductoClientPage() {
     });
   };
 
+  const isRtl = language === 'ar';
+
   if (isLoading) {
     return (
       <>
-        <PageHeader title={t('products.title')} description={t('common.loading')} actionButton={<Skeleton className="h-10 w-36" />} />
+        <PageHeader title={t('productos.title')} description={t('common.loading')} actionButton={<Skeleton className="h-10 w-36" />} />
         <div className="mb-4 flex items-center gap-2">
           <Skeleton className="h-10 w-full max-w-sm" />
           <Skeleton className="h-10 w-10" />
         </div>
-        <div className="rounded-md border shadow-sm">
+        <div className="rounded-xl border border-border bg-card shadow-xl p-4">
           <Table>
             <TableHeader>
               <TableRow>
@@ -177,43 +179,43 @@ export default function ProductoClientPage() {
   return (
     <>
       <PageHeader
-        title={t('products.title')}
-        description={t('products.description')}
+        title={t('productos.title')}
+        description={t('productos.description')}
         actionButton={
-          <Button asChild className="shadow-sm">
+          <Button asChild className="shadow-lg shadow-amber-500/10 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-xl">
             <Link href="/dashboard/productos/new">
-              <PlusCircle className="mr-2 h-4 w-4" /> {t('products.addNewProductButton')}
+              <PlusCircle className={isRtl ? "ml-2 h-4 w-4" : "mr-2 h-4 w-4"} /> {t('productos.addNewProductoButton')}
             </Link>
           </Button>
         }
       />
 
-      <div className="mb-6 flex items-center gap-4">
-        <div className="relative flex-grow">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-            <Input
+      <div className="mb-6 flex flex-col md:flex-row items-stretch md:items-center gap-4">
+        <div className="relative flex-grow max-w-md">
+          <Search className={`absolute top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground ${isRtl ? 'right-3' : 'left-3'}`} />
+          <Input
             type="search"
-            placeholder={t('products.searchPlaceholder')}
+            placeholder={t('productos.searchPlaceholder')}
             value={searchTerm}
             onChange={(e) => {
-                setSearchTerm(e.target.value);
-                setCurrentPage(1);
+              setSearchTerm(e.target.value);
+              setCurrentPage(1);
             }}
-            className="w-full max-w-md pl-10 shadow-sm"
-            />
+            className={`w-full bg-card border-border text-foreground rounded-xl ${isRtl ? 'pr-10 pl-3' : 'pl-10 pr-3'}`}
+          />
         </div>
         <Popover>
             <PopoverTrigger asChild>
-            <Button variant="outline" className="shadow-sm">
-                <Filter className="mr-2 h-4 w-4" />
-                {t('products.filterByCurrency')} ({selectedCurrencies.size === ALL_PRODUCT_CURRENCIES.length ? t('common.all') : selectedCurrencies.size})
+            <Button variant="outline" className="rounded-xl border-border bg-card text-foreground hover:bg-muted shadow-xs">
+                <Filter className={isRtl ? "ml-2 h-4 w-4" : "mr-2 h-4 w-4"} />
+                {t('productos.filterByCurrency')} ({selectedCurrencies.size === ALL_PRODUCT_CURRENCIES.length ? t('common.all') : selectedCurrencies.size})
             </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-56 p-0" align="end">
+            <PopoverContent className="w-56 p-0 bg-card border-border text-card-foreground shadow-xl rounded-xl" align="end">
             <Command>
-                <CommandInput placeholder={t('products.searchCurrency')} />
+                <CommandInput placeholder={t('productos.searchCurrency')} />
                 <CommandList>
-                <CommandEmpty>{t('products.noCurrencyFound')}</CommandEmpty>
+                <CommandEmpty>{t('productos.noCurrencyFound')}</CommandEmpty>
                 <CommandGroup>
                     {ALL_PRODUCT_CURRENCIES.map((currency) => (
                     <CommandItem
@@ -224,7 +226,7 @@ export default function ProductoClientPage() {
                         {currency}
                         <Checkbox
                         checked={selectedCurrencies.has(currency)}
-                        className="ml-2"
+                        className={isRtl ? "mr-2" : "ml-2"}
                         />
                     </CommandItem>
                     ))}
@@ -235,8 +237,7 @@ export default function ProductoClientPage() {
         </Popover>
       </div>
 
-
-      <div className="rounded-md border bg-card shadow-sm">
+      <div className="rounded-2xl border border-border bg-card shadow-xl overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>
@@ -283,8 +284,8 @@ export default function ProductoClientPage() {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={7} className="h-24 text-center">
-                  {searchTerm || (selectedCurrencies.size < ALL_PRODUCT_CURRENCIES.length) ? t('products.noProductsFound') : t('common.loading')}
+                <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
+                  {t('productos.noProductosFound')}
                 </TableCell>
               </TableRow>
             )}
